@@ -14,7 +14,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
+import br.ce.wcaquino.daos.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
@@ -32,7 +36,12 @@ public class CalculoValorLotacaoTeste {
 	@Parameter(value = 2)
 	public String canario;
 	
+	@InjectMocks
 	private LocacaoService service;
+	@Mock
+	private LocacaoDAO dao;
+	@Mock
+	private SPCService spc;
 	
 	private static Filme filme1 = umFilme().agora();
 	private static Filme filme2 = umFilme().agora();
@@ -61,11 +70,13 @@ public class CalculoValorLotacaoTeste {
 	
 	
 	
+	
 
 
 	@Before
 	public void setup() {
-		service = new LocacaoService();
+		MockitoAnnotations.initMocks(this);
+
 
 	}
 	

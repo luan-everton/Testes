@@ -6,6 +6,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.Test;
+
 import br.ce.wcaquino.daos.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
@@ -19,6 +21,8 @@ public class LocacaoService {
 	
 	
 	private LocacaoDAO dao;
+	private SPCService spcSERVICE;
+	private EmailSevice emailSERVICE;
 	
 	public Locacao alugarFilme(Usuario usuario, List<Filme> filmes) throws FilmeSemEstoqueException, LocadoraException {
 	
@@ -33,7 +37,17 @@ public class LocacaoService {
 		if(filme.getEstoque() == 0) {
 			throw new FilmeSemEstoqueException();												
 		    }
+		boolean negativado;
+		try {
+			negativado = spcSERVICE.possuiNegativacao(usuario);
+			
+		} catch (Exception e) {
+			throw new LocadoraException("Problemas com SPC, tente novamente");
+		 }
+		if (negativado) {
+			throw new LocadoraException("Usuario negativado");
 		}
+}
 		
 		Locacao locacao = new Locacao();
 		locacao.setFilmes(filmes);
@@ -68,5 +82,26 @@ public class LocacaoService {
 		return locacao;
 	}
 	
+	public void notificacaoAtrasasos() {
+		List<Locacao> locacoes = dao.obterLocacoesPendentes();
+		for (Locacao locacao: locacoes) {
+			emailSERVICE.notificarAtraso(locacao.getUsuario());
+			
+			
+		}
+	}
+	@Test
+	public void prorrogarLocacao(Locacao locacao, int dias) {
+		Locacao novaLocacao = new Locacao();
+		novaLocacao.setUsuario(locacao.getUsuario());
+		novaLocacao.setFilmes(locacao.getFilmes());
+		novaLocacao.setDataLocacao(new Date());
+		novaLocacao.setDataRetorno(DataUtils.obterDataComDiferencaDias(dias));
+		novaLocacao.setValor(locacao.getValor()* dias);
+		dao.salvar(novaLocacao);
+		
+		
+		
+	}
 	
 }
